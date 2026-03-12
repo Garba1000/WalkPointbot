@@ -6,109 +6,129 @@
 <title>Walk & Earn</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #000;
-  color: #fff;
-  margin: 0;
-  padding: 20px;
-}
-h1, h2 { margin-bottom: 10px; }
-.section { margin-top: 20px; padding: 15px; background: #111; border-radius: 10px; }
-.btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  background: #00c853;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-}
-.btn:active { transform: scale(0.95); }
-.hidden { display: none; }
-input, select {
-  padding: 8px; margin: 5px 0; width: 100%; border-radius: 5px; border: none;
-}
-#joinPopup {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.95);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
-  z-index: 9999;
-}
-#joinPopup button {
-  background: #00c853;
-  color: #fff;
-  padding: 12px 20px;
-  margin-top: 20px;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 18px;
-  cursor: pointer;
+body{
+font-family:Arial,sans-serif;
+background:#000;
+color:#fff;
+margin:0;
+padding:20px;
 }
 
-/* Walk Avatar */
+h1,h2{margin-bottom:10px;}
+
+.section{
+margin-top:20px;
+padding:15px;
+background:#111;
+border-radius:10px;
+}
+
+.btn{
+display:inline-block;
+margin-top:10px;
+padding:10px 15px;
+border-radius:8px;
+background:#00c853;
+color:#fff;
+font-weight:bold;
+cursor:pointer;
+text-align:center;
+}
+
+.btn:active{transform:scale(0.95);}
+
+.hidden{display:none;}
+
+input,select{
+padding:8px;
+margin:5px 0;
+width:100%;
+border-radius:5px;
+border:none;
+}
+
+/* JOIN POPUP */
+
+#joinPopup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.95);
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+text-align:center;
+padding:20px;
+z-index:9999;
+}
+
+#joinPopup button{
+background:#00c853;
+color:#fff;
+padding:12px 20px;
+margin-top:20px;
+border:none;
+border-radius:10px;
+font-weight:bold;
+font-size:18px;
+cursor:pointer;
+}
+
+/* WALK AREA */
+
 #road{
-  width:100%;
-  height:150px;
-  background:#222 url('https://i.imgur.com/2R6zG4R.png') repeat-x; /* moving road pattern */
-  border-radius:10px;
-  position:relative;
-  overflow:hidden;
-  margin-top:10px;
-}
-#walker{
-  position:absolute;
-  bottom:10px;
-  left:0;
-  width:80px;
-  height:120px;
-  background:url('https://i.imgur.com/Ff8ZxS2.png') no-repeat; /* avatar sprite */
-  background-size:cover;
-  animation: walkLegs 0.6s steps(4) infinite;
-}
-@keyframes walkLegs{
-  0%{background-position:0 0;}
-  100%{background-position:0 -480px;} /* sprite sheet height */
+width:100%;
+height:220px;
+background:#111;
+border-radius:10px;
+overflow:hidden;
+position:relative;
 }
 
-/* Floating success popup */
-#claimSuccessMsg {
-  position: absolute;
-  top: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #00c853;
-  color: #fff;
-  padding: 15px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 16px;
-  display: none;
-  z-index: 9999;
-  text-align: center;
+#walk3d{
+width:100%;
+height:100%;
+display:block;
 }
+
+/* SUCCESS POPUP */
+
+#claimSuccessMsg{
+position:absolute;
+top:50px;
+left:50%;
+transform:translateX(-50%);
+background:#00c853;
+color:#fff;
+padding:15px 20px;
+border-radius:10px;
+font-weight:bold;
+font-size:16px;
+display:none;
+z-index:9999;
+text-align:center;
+}
+
 </style>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+<!-- 3D ENGINE -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+
 </head>
 
 <body>
 
 <div id="joinPopup">
-  <h2>📢 Join Our Telegram Channel to Continue</h2>
-  <p>You must join before using the app.</p>
-  <button onclick="joinChannelClicked()">👉 Join @earnzoners</button>
+<h2>📢 Join Our Telegram Channel to Continue</h2>
+<p>You must join before using the app.</p>
+<button onclick="joinChannelClicked()">👉 Join @earnzoners</button>
 </div>
 
 <div id="mainPage" style="display:none;">
@@ -119,7 +139,7 @@ input, select {
 <div class="section">
 
 <div id="road">
-  <div id="walker"></div>
+<canvas id="walk3d"></canvas>
 </div>
 
 <p id="walkMsg">Press walk and start earning!</p>
@@ -130,37 +150,48 @@ input, select {
 
 </div>
 
-<!-- Floating success popup -->
 <div id="claimSuccessMsg">
-  🎉 You're successful! Claim 3000 points welcome bonus from Walk.
+🎉 You're successful! Claim 3000 points welcome bonus from Walk.
 </div>
 
 <div class="section">
 <h2>📋 Tasks</h2>
+
 <div id="taskIntro">
-  <div class="btn" id="startTasksBtn">Start Tasks</div>
+<div class="btn" id="startTasksBtn">Start Tasks</div>
 </div>
+
 <div id="adsgram-container" class="hidden"></div>
+
 <div id="nextTaskBtnContainer" class="hidden">
-  <div class="btn" id="nextTaskBtn">➡️ Next Task</div>
+<div class="btn" id="nextTaskBtn">➡️ Next Task</div>
 </div>
+
 <div id="finalTaskBtnContainer" class="hidden">
-  <div class="btn" id="finalTaskBtn">🏁 Finish Tasks</div>
+<div class="btn" id="finalTaskBtn">🏁 Finish Tasks</div>
 </div>
+
 </div>
 
 <div class="section">
+
 <h2>💳 Withdraw</h2>
+
 <p><b>Minimum withdrawal is 250,000 points (~$59)</b></p>
+
 <select id="method">
 <option value="Litecoin">Litecoin</option>
 <option value="USDT">USDT</option>
 <option value="Payeer">Payeer</option>
 <option value="Bank">Bank Account</option>
 </select>
+
 <input type="text" id="address" placeholder="Enter wallet or account"/>
+
 <input type="number" id="amount" placeholder="Minimum 250000"/>
+
 <div class="btn" id="withdrawBtn">Request Withdraw</div>
+
 </div>
 
 </div>
@@ -169,188 +200,380 @@ input, select {
 <audio id="laughSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_laugh.mp3"></audio>
 
 <script>
-const webApp = Telegram.WebApp;
-let points = parseInt(localStorage.getItem("points") || "0");
-let energy = parseInt(localStorage.getItem("energy") || "50");
+
+const webApp=Telegram.WebApp;
+
+let points=parseInt(localStorage.getItem("points")||"0");
+let energy=parseInt(localStorage.getItem("energy")||"50");
 
 function updateUI(){
-  document.getElementById("points").innerText = points;
-  document.getElementById("energy").innerText = energy;
+document.getElementById("points").innerText=points;
+document.getElementById("energy").innerText=energy;
 }
+
 function saveState(){
-  localStorage.setItem("points", points);
-  localStorage.setItem("energy", energy);
+localStorage.setItem("points",points);
+localStorage.setItem("energy",energy);
 }
 
 /* JOIN */
+
 function joinChannelClicked(){
-  window.open("https://t.me/crytocurrentupdate","_blank");
-  document.getElementById("joinPopup").style.display="none";
-  document.getElementById("mainPage").style.display="block";
+window.open("https://t.me/crytocurrentupdate","_blank");
+document.getElementById("joinPopup").style.display="none";
+document.getElementById("mainPage").style.display="block";
 }
 
 function showJoinPopupAfterAds(){
-  try{
-    const rewardAd = window.Adsgram.init({blockId:"23731"});
-    rewardAd.show().finally(()=>{
-      document.getElementById("joinPopup").style.display="flex";
-    });
-  }catch(e){
-    document.getElementById("joinPopup").style.display="flex";
-  }
+try{
+const rewardAd=window.Adsgram.init({blockId:"23731"});
+rewardAd.show().finally(()=>{
+document.getElementById("joinPopup").style.display="flex";
+});
+}catch(e){
+document.getElementById("joinPopup").style.display="flex";
+}
 }
 
-/* ================= WALK & EARN ================= */
-let walkDistance = 0;
-let walkInterval = null;
+/* WALK SYSTEM */
 
-document.getElementById("startWalkBtn").onclick = function(){
-  const walker = document.getElementById("walker");
-  const walkSound = document.getElementById("walkSound");
-  walkSound.loop = true;
-  walkSound.play();
+let walkDistance=0;
+let walkInterval=null;
 
-  if(walkInterval) clearInterval(walkInterval);
+document.getElementById("startWalkBtn").onclick=function(){
 
-  walkInterval = setInterval(()=>{
-    walkDistance += 5;
-    walker.style.left = walkDistance + "px";
+const walkSound=document.getElementById("walkSound");
 
-    if(walkDistance >= 250){
-      document.getElementById("claimBtn").classList.remove("hidden");
-    }
-  },1000);
+walkSound.loop=true;
+walkSound.play();
 
-  // Ads every 30 sec
-  setInterval(()=>{
-    try{
-      const rewardAd = window.Adsgram.init({blockId:"23731"});
-      rewardAd.show();
-    }catch(e){}
-  },30000);
+if(walkInterval)clearInterval(walkInterval);
+
+walkInterval=setInterval(()=>{
+
+walkDistance+=5;
+
+if(walkDistance>=250){
+document.getElementById("claimBtn").classList.remove("hidden");
 }
 
-document.getElementById("claimBtn").addEventListener("click", ()=>{
-  const laugh = document.getElementById("laughSound");
-  laugh.play();
+},1000);
 
-  // Trigger claim tasks (task_block) just like your old system
-  const scratchClaimTasks = ["task-23774","task-23767","task-23768","task-23774","task-23775"];
-  const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
-  const container = document.getElementById("adsgram-container");
-  container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-  container.classList.remove("hidden");
-  document.getElementById("claimBtn").classList.add("hidden");
+/* Ads every 30 sec */
 
-  const task = container.querySelector(".task");
-  task.addEventListener("reward", ()=>{
-    points += 3000;  // reward 3000 points
-    saveState();
-    updateUI();
+setInterval(()=>{
 
-    const popup = document.getElementById("claimSuccessMsg");
-    popup.style.display = "block";
-    setTimeout(()=>{ popup.style.display="none"; },30000);
+try{
 
-    // Reset walker
-    walkDistance = 0;
-    document.getElementById("walker").style.left = "0px";
-    container.classList.add("hidden");
-  });
+const rewardAd=window.Adsgram.init({blockId:"23731"});
+rewardAd.show();
+
+}catch(e){}
+
+},30000);
+
+};
+
+/* CLAIM */
+
+document.getElementById("claimBtn").addEventListener("click",()=>{
+
+const laugh=document.getElementById("laughSound");
+laugh.play();
+
+const scratchClaimTasks=[
+"task-23774",
+"task-23767",
+"task-23768",
+"task-23774",
+"task-23775"
+];
+
+const randomTaskId=scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
+
+const container=document.getElementById("adsgram-container");
+
+container.innerHTML=`<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
+
+container.classList.remove("hidden");
+
+document.getElementById("claimBtn").classList.add("hidden");
+
+const task=container.querySelector(".task");
+
+task.addEventListener("reward",()=>{
+
+points+=3000;
+
+saveState();
+updateUI();
+
+const popup=document.getElementById("claimSuccessMsg");
+
+popup.style.display="block";
+
+setTimeout(()=>{
+
+popup.style.display="none";
+
+},30000);
+
+walkDistance=0;
+
+container.classList.add("hidden");
+
 });
 
-/* ================= TASK SYSTEM ================= */
+});
+
+/* TASK SYSTEM */
+
 let currentTaskIndex=0;
-const taskIds=["task-23767","task-23768","task-23769","task-23774","task-23775"];
+
+const taskIds=[
+"task-23767",
+"task-23768",
+"task-23769",
+"task-23774",
+"task-23775"
+];
 
 function loadTask(blockId){
-  const container=document.getElementById("adsgram-container");
-  container.innerHTML=`<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
-  container.classList.remove("hidden");
-  document.getElementById("taskIntro").classList.add("hidden");
 
-  const task=container.querySelector(".task");
-  task.addEventListener("reward",(e)=>{
-    energy += 2; // reward ONLY energy
-    saveState();
-    updateUI();
+const container=document.getElementById("adsgram-container");
 
-    if(currentTaskIndex<taskIds.length-1){
-      document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
-    }else{
-      document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
-    }
-  });
+container.innerHTML=`<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
+
+container.classList.remove("hidden");
+
+document.getElementById("taskIntro").classList.add("hidden");
+
+const task=container.querySelector(".task");
+
+task.addEventListener("reward",()=>{
+
+energy+=2;
+
+saveState();
+updateUI();
+
+if(currentTaskIndex<taskIds.length-1){
+
+document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
+
+}else{
+
+document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
+
+}
+
+});
+
 }
 
 document.getElementById("startTasksBtn").addEventListener("click",()=>{
-  currentTaskIndex=0;
-  loadTask(taskIds[currentTaskIndex]);
+
+currentTaskIndex=0;
+
+loadTask(taskIds[currentTaskIndex]);
+
 });
 
 document.getElementById("nextTaskBtn").addEventListener("click",()=>{
-  currentTaskIndex++;
-  document.getElementById("nextTaskBtnContainer").classList.add("hidden");
-  loadTask(taskIds[currentTaskIndex]);
+
+currentTaskIndex++;
+
+document.getElementById("nextTaskBtnContainer").classList.add("hidden");
+
+loadTask(taskIds[currentTaskIndex]);
+
 });
 
 document.getElementById("finalTaskBtn").addEventListener("click",()=>{
-  try{
-    const rewardAd=window.Adsgram.init({blockId:"23731"});
-    rewardAd.show().then(res=>{
-      if(res.done){
-        energy+=2;
-        saveState();
-        updateUI();
-      }
-      document.getElementById("taskIntro").classList.remove("hidden");
-      document.getElementById("adsgram-container").classList.add("hidden");
-      document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-      currentTaskIndex=0;
-    });
-  }catch(e){
-    document.getElementById("taskIntro").classList.remove("hidden");
-    document.getElementById("adsgram-container").classList.add("hidden");
-    document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-    currentTaskIndex=0;
-  }
+
+try{
+
+const rewardAd=window.Adsgram.init({blockId:"23731"});
+
+rewardAd.show().then(res=>{
+
+if(res.done){
+
+energy+=2;
+
+saveState();
+updateUI();
+
+}
+
+document.getElementById("taskIntro").classList.remove("hidden");
+
+document.getElementById("adsgram-container").classList.add("hidden");
+
+document.getElementById("finalTaskBtnContainer").classList.add("hidden");
+
+currentTaskIndex=0;
+
 });
 
-/* ================= WITHDRAW ================= */
+}catch(e){
+
+document.getElementById("taskIntro").classList.remove("hidden");
+
+document.getElementById("adsgram-container").classList.add("hidden");
+
+document.getElementById("finalTaskBtnContainer").classList.add("hidden");
+
+currentTaskIndex=0;
+
+}
+
+});
+
+/* WITHDRAW */
+
 document.getElementById("withdrawBtn").addEventListener("click",()=>{
-  const method=document.getElementById("method").value;
-  const address=document.getElementById("address").value.trim();
-  const amount=parseInt(document.getElementById("amount").value);
 
-  if(isNaN(amount)||amount<250000){
-    alert("Minimum withdrawal is 250,000 points (~$59)");
-    return;
-  }
-  if(points<amount){
-    alert("Not enough points");
-    return;
-  }
+const method=document.getElementById("method").value;
 
-  const user=webApp.initDataUnsafe.user||{};
-  const msg=JSON.stringify({
-    type:"withdraw_request",
-    user_id:user.id,
-    username:user.username||"No username",
-    amount,method,address
-  });
-  Telegram.WebApp.sendData(msg);
+const address=document.getElementById("address").value.trim();
 
-  points-=amount;
-  saveState();
-  updateUI();
-  alert("✅ Withdrawal request sent!");
+const amount=parseInt(document.getElementById("amount").value);
+
+if(isNaN(amount)||amount<250000){
+
+alert("Minimum withdrawal is 250,000 points (~$59)");
+return;
+
+}
+
+if(points<amount){
+
+alert("Not enough points");
+return;
+
+}
+
+const user=webApp.initDataUnsafe.user||{};
+
+const msg=JSON.stringify({
+
+type:"withdraw_request",
+
+user_id:user.id,
+
+username:user.username||"No username",
+
+amount,
+
+method,
+
+address
+
 });
+
+Telegram.WebApp.sendData(msg);
+
+points-=amount;
+
+saveState();
+
+updateUI();
+
+alert("✅ Withdrawal request sent!");
+
+});
+
+/* 3D WALKING HUMAN */
+
+let scene,camera,renderer,mixer,clock;
+
+function init3DWalker(){
+
+const canvas=document.getElementById("walk3d");
+
+scene=new THREE.Scene();
+
+camera=new THREE.PerspectiveCamera(
+75,
+canvas.clientWidth/canvas.clientHeight,
+0.1,
+1000
+);
+
+renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+
+renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+
+const light=new THREE.HemisphereLight(0xffffff,0x444444,2);
+
+scene.add(light);
+
+const groundGeo=new THREE.PlaneGeometry(50,50);
+
+const groundMat=new THREE.MeshStandardMaterial({color:0x333333});
+
+const ground=new THREE.Mesh(groundGeo,groundMat);
+
+ground.rotation.x=-Math.PI/2;
+
+scene.add(ground);
+
+camera.position.set(0,2,5);
+
+const loader=new THREE.GLTFLoader();
+
+loader.load(
+"https://threejs.org/examples/models/gltf/Soldier.glb",
+function(gltf){
+
+const model=gltf.scene;
+
+model.scale.set(1.5,1.5,1.5);
+
+scene.add(model);
+
+mixer=new THREE.AnimationMixer(model);
+
+const action=mixer.clipAction(gltf.animations[3]);
+
+action.play();
+
+}
+);
+
+clock=new THREE.Clock();
+
+animate();
+
+}
+
+function animate(){
+
+requestAnimationFrame(animate);
+
+if(mixer){
+
+mixer.update(clock.getDelta());
+
+}
+
+renderer.render(scene,camera);
+
+}
 
 /* LOAD */
+
 document.addEventListener("DOMContentLoaded",()=>{
-  updateUI();
-  showJoinPopupAfterAds();
+
+updateUI();
+
+showJoinPopupAfterAds();
+
+init3DWalker();
+
 });
+
 </script>
 
 </body>
