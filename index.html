@@ -151,7 +151,7 @@ text-align:center;
 
 <h2>💳 Withdraw</h2>
 
-<p><b>Minimum withdrawal is 250,000 points (~$59)</b></p>
+<p><b>Minimum withdrawal is 100,000 points (~$100)</b></p>
 
 <select id="method">
 <option value="Litecoin">Litecoin</option>
@@ -161,7 +161,7 @@ text-align:center;
 </select>
 
 <input type="text" id="address" placeholder="Enter wallet or account"/>
-<input type="number" id="amount" placeholder="Minimum 250000"/>
+<input type="number" id="amount" placeholder="Minimum 100000"/>
 
 <div class="btn" id="withdrawBtn">Request Withdraw</div>
 
@@ -171,19 +171,22 @@ text-align:center;
 
 <script>
 
-const webApp=Telegram.WebApp;
+const webApp = Telegram.WebApp;
 
-let points=parseInt(localStorage.getItem("points")||"0");
-let energy=parseInt(localStorage.getItem("energy")||"50");
+// Fix for new users always start at 0
+let savedPoints = localStorage.getItem("points");
+let points = savedPoints ? parseInt(savedPoints) : 0;
+
+let energy = parseInt(localStorage.getItem("energy") || "50");
 
 function updateUI(){
-document.getElementById("points").innerText=points;
-document.getElementById("energy").innerText=energy;
+document.getElementById("points").innerText = points;
+document.getElementById("energy").innerText = energy;
 }
 
 function saveState(){
-localStorage.setItem("points",points);
-localStorage.setItem("energy",energy);
+localStorage.setItem("points", points);
+localStorage.setItem("energy", energy);
 }
 
 /* JOIN */
@@ -191,375 +194,236 @@ localStorage.setItem("energy",energy);
 function joinChannelClicked(){
 window.open("https://t.me/crytocurrentupdate","_blank");
 
-document.getElementById("joinPopup").style.display="none";
-document.getElementById("mainPage").style.display="block";
+document.getElementById("joinPopup").style.display = "none";
+document.getElementById("mainPage").style.display = "block";
 }
 
 function showJoinPopupAfterAds(){
-
 try{
-
-const rewardAd=window.Adsgram.init({blockId:"24981"});
-
+const rewardAd = window.Adsgram.init({blockId:"24981"});
 rewardAd.show().finally(()=>{
-
-document.getElementById("joinPopup").style.display="flex";
-
+document.getElementById("joinPopup").style.display = "flex";
 });
-
 }catch(e){
-
-document.getElementById("joinPopup").style.display="flex";
-
+document.getElementById("joinPopup").style.display = "flex";
 }
-
 }
 
 /* WALK WHEEL */
 
-const rewardBlocks=["24982","24983","24984"];
+const rewardBlocks = ["24982","24983","24984"];
 
-let adsShown=0;
-let claimAvailable=false;
-let wheelRunning=false;
-let rotation=0;
+let adsShown = 0;
+let claimAvailable = false;
+let wheelRunning = false;
+let rotation = 0;
 
-const canvas=document.getElementById("scratchCanvas");
-const ctx=canvas.getContext("2d");
-const claimBtn=document.getElementById("claimBtn");
-const scratchMsg=document.getElementById("scratchMsg");
+const canvas = document.getElementById("scratchCanvas");
+const ctx = canvas.getContext("2d");
+const claimBtn = document.getElementById("claimBtn");
+const scratchMsg = document.getElementById("scratchMsg");
 
-const walkSound=new Audio("https://actions.google.com/sounds/v1/foley/footsteps_on_wood.ogg");
-walkSound.loop=true;
+const walkSound = new Audio("https://actions.google.com/sounds/v1/foley/footsteps_on_wood.ogg");
+walkSound.loop = true;
 
 function drawWheel(){
-
 ctx.clearRect(0,0,canvas.width,canvas.height);
-
 ctx.save();
 ctx.translate(canvas.width/2,canvas.height/2);
 ctx.rotate(rotation);
-
 ctx.beginPath();
 ctx.arc(0,0,80,0,Math.PI*2);
-ctx.fillStyle="#00c853";
+ctx.fillStyle="#ff0000"; // wheel color red
 ctx.fill();
-
 ctx.fillStyle="#fff";
 ctx.font="18px Arial";
 ctx.textAlign="center";
 ctx.fillText("WALK",0,5);
-
 ctx.restore();
-
 }
 
 drawWheel();
 
-canvas.addEventListener("click",startWalk);
-canvas.addEventListener("touchstart",startWalk);
+canvas.addEventListener("click", startWalk);
+canvas.addEventListener("touchstart", startWalk);
 
 function startWalk(){
-
-if(wheelRunning||claimAvailable)return;
-
-wheelRunning=true;
-
+if(wheelRunning || claimAvailable) return;
+wheelRunning = true;
 walkSound.play();
-
-scratchMsg.innerText="🚶 Walking...";
-
+scratchMsg.innerText = "🚶 Walking...";
 rotateWheel();
-
 runWalkCycle();
-
 }
 
 function rotateWheel(){
-
-if(!wheelRunning)return;
-
-rotation+=0.15;
-
+if(!wheelRunning) return;
+rotation += 0.15;
 drawWheel();
-
 requestAnimationFrame(rotateWheel);
-
 }
 
 function runWalkCycle(){
-
-if(adsShown>=6){
-
-wheelRunning=false;
+if(adsShown >= 6){
+wheelRunning = false;
 walkSound.pause();
-
-claimAvailable=true;
-
+claimAvailable = true;
 claimBtn.classList.remove("hidden");
-
-scratchMsg.innerText="🎉 Walk completed! Claim reward";
-
+scratchMsg.innerText = "🎉 Walk completed! Claim reward";
 return;
-
 }
-
 setTimeout(()=>{
-
 showTwoAds();
-
-},20000);
-
+}, 20000);
 }
 
 function showTwoAds(){
-
 showAd(()=>{
 showAd(()=>{
-adsShown+=2;
+adsShown += 2;
 runWalkCycle();
 });
 });
-
 }
 
 function showAd(callback){
-
 try{
-
-const randomBlock=rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
-
-const rewardAd=window.Adsgram.init({blockId:randomBlock});
-
+const randomBlock = rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
+const rewardAd = window.Adsgram.init({blockId: randomBlock});
 rewardAd.show().finally(()=>{
-
 if(callback) callback();
-
 });
-
 }catch(e){
-
 if(callback) callback();
-
 }
-
 }
 
 /* CLAIM */
 
-const scratchClaimTasks=["task-24985","task-24986","task-24987","task-24988"];
+const scratchClaimTasks = ["task-24985","task-24986","task-24987","task-24988"];
 
-claimBtn.addEventListener("click",()=>{
-
-if(!claimAvailable)return;
-
-const randomTaskId=scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
-
-const container=document.getElementById("adsgram-container");
-
-container.innerHTML=`<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-
+claimBtn.addEventListener("click", ()=>{
+if(!claimAvailable) return;
+const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
+const container = document.getElementById("adsgram-container");
+container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
 container.classList.remove("hidden");
-
 claimBtn.classList.add("hidden");
-
-const task=container.querySelector(".task");
-
-task.addEventListener("reward",()=>{
-
-points+=1500;
-
+const task = container.querySelector(".task");
+task.addEventListener("reward", ()=>{
+points += 1500; // claim reward
 saveState();
 updateUI();
-
-const popup=document.getElementById("claimSuccessMsg");
-
-popup.style.display="block";
-
+const popup = document.getElementById("claimSuccessMsg");
+popup.style.display = "block";
 setTimeout(()=>{
-
-popup.style.display="none";
-
-},30000);
-
+popup.style.display = "none";
+}, 30000);
 resetWalk();
-
 container.classList.add("hidden");
-
 });
-
 });
 
 function resetWalk(){
-
-adsShown=0;
-
-claimAvailable=false;
-
-wheelRunning=false;
-
+adsShown = 0;
+claimAvailable = false;
+wheelRunning = false;
 claimBtn.classList.add("hidden");
-
-scratchMsg.innerText="🚶 Tap the wheel to start walking";
-
+scratchMsg.innerText = "🚶 Tap the wheel to start walking";
 drawWheel();
-
 }
 
 /* TASK SYSTEM */
 
-let currentTaskIndex=0;
-
-const taskIds=["task-24985","task-24986","task-24987","task-24988","task-24989"];
+let currentTaskIndex = 0;
+const taskIds = ["task-24985","task-24986","task-24987","task-24988","task-24989"];
 
 function loadTask(blockId){
-
-const container=document.getElementById("adsgram-container");
-
-container.innerHTML=`<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
-
+const container = document.getElementById("adsgram-container");
+container.innerHTML = `<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
 container.classList.remove("hidden");
-
 document.getElementById("taskIntro").classList.add("hidden");
-
-const task=container.querySelector(".task");
-
-task.addEventListener("reward",()=>{
-
-energy+=2;
-
+const task = container.querySelector(".task");
+task.addEventListener("reward", ()=>{
+energy += 2;
 saveState();
 updateUI();
-
-if(currentTaskIndex<taskIds.length-1){
-
+if(currentTaskIndex < taskIds.length-1){
 document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
-
 }else{
-
 document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
-
 }
-
 });
-
 }
 
-document.getElementById("startTasksBtn").addEventListener("click",()=>{
-
-currentTaskIndex=0;
-
+document.getElementById("startTasksBtn").addEventListener("click", ()=>{
+currentTaskIndex = 0;
 loadTask(taskIds[currentTaskIndex]);
-
 });
 
-document.getElementById("nextTaskBtn").addEventListener("click",()=>{
-
+document.getElementById("nextTaskBtn").addEventListener("click", ()=>{
 currentTaskIndex++;
-
 document.getElementById("nextTaskBtnContainer").classList.add("hidden");
-
 loadTask(taskIds[currentTaskIndex]);
-
 });
 
-document.getElementById("finalTaskBtn").addEventListener("click",()=>{
-
+document.getElementById("finalTaskBtn").addEventListener("click", ()=>{
 try{
-
-const rewardAd=window.Adsgram.init({blockId:"23731"});
-
+const rewardAd = window.Adsgram.init({blockId:"23731"});
 rewardAd.show().then(()=>{
-
-energy+=2;
-
+energy += 2;
 saveState();
 updateUI();
-
 document.getElementById("taskIntro").classList.remove("hidden");
-
 document.getElementById("adsgram-container").classList.add("hidden");
-
 document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-
-currentTaskIndex=0;
-
+currentTaskIndex = 0;
 });
-
 }catch(e){
-
 document.getElementById("taskIntro").classList.remove("hidden");
-
 document.getElementById("adsgram-container").classList.add("hidden");
-
 document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-
-currentTaskIndex=0;
-
+currentTaskIndex = 0;
 }
-
 });
 
 /* WITHDRAW */
 
-document.getElementById("withdrawBtn").addEventListener("click",()=>{
+document.getElementById("withdrawBtn").addEventListener("click", ()=>{
+const method = document.getElementById("method").value;
+const address = document.getElementById("address").value.trim();
+const amount = parseInt(document.getElementById("amount").value);
 
-const method=document.getElementById("method").value;
-
-const address=document.getElementById("address").value.trim();
-
-const amount=parseInt(document.getElementById("amount").value);
-
-if(isNaN(amount)||amount<250000){
-
-alert("Minimum withdrawal is 250,000 points (~$59)");
-
+if(isNaN(amount) || amount < 100000){
+alert("Minimum withdrawal is 100,000 points (~$100)");
 return;
-
 }
-
-if(points<amount){
-
+if(points < amount){
 alert("Not enough points");
-
 return;
-
 }
 
-const user=webApp.initDataUnsafe.user||{};
-
-const msg=JSON.stringify({
-
+const user = webApp.initDataUnsafe.user || {};
+const msg = JSON.stringify({
 type:"withdraw_request",
-
 user_id:user.id,
-
-username:user.username||"No username",
-
+username:user.username || "No username",
 amount,method,address
-
 });
-
 Telegram.WebApp.sendData(msg);
 
-points-=amount;
-
+points -= amount;
 saveState();
-
 updateUI();
 
 alert("✅ Withdrawal request sent!");
-
 });
 
 /* LOAD */
 
-document.addEventListener("DOMContentLoaded",()=>{
-
+document.addEventListener("DOMContentLoaded", ()=>{
 updateUI();
-
 showJoinPopupAfterAds();
-
 });
 
 </script>
