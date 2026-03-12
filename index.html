@@ -28,7 +28,7 @@ display:inline-block;
 margin-top:10px;
 padding:10px 15px;
 border-radius:8px;
-background:#00c853;
+background:#ff0000;
 color:#fff;
 font-weight:bold;
 cursor:pointer;
@@ -70,7 +70,7 @@ z-index:9999;
 }
 
 #joinPopup button{
-background:#00c853;
+background:#ff0000;
 color:#fff;
 padding:12px 20px;
 margin-top:20px;
@@ -120,12 +120,12 @@ text-align:center;
 <canvas id="scratchCanvas" width="300" height="200"></canvas>
 <p id="scratchMsg">🚶 Tap the wheel to start walking</p>
 
-<div class="btn hidden" id="claimBtn">🎁 Claim 3000 Points</div>
+<div class="btn hidden" id="claimBtn">🎁 Claim 1500 Points</div>
 
 </div>
 
 <div id="claimSuccessMsg">
-🎉 You're successful! Claim 3000 points welcome bonus.
+🎉 Congratulations! You have successfully received 1500 points. Walk more and earn.
 </div>
 
 <div class="section">
@@ -306,13 +306,24 @@ return;
 
 setTimeout(()=>{
 
-showAd();
+showTwoAds();
 
 },20000);
 
 }
 
-function showAd(){
+function showTwoAds(){
+
+showAd(()=>{
+showAd(()=>{
+adsShown+=2;
+runWalkCycle();
+});
+});
+
+}
+
+function showAd(callback){
 
 try{
 
@@ -322,17 +333,13 @@ const rewardAd=window.Adsgram.init({blockId:randomBlock});
 
 rewardAd.show().finally(()=>{
 
-adsShown++;
-
-runWalkCycle();
+if(callback) callback();
 
 });
 
 }catch(e){
 
-adsShown++;
-
-runWalkCycle();
+if(callback) callback();
 
 }
 
@@ -360,7 +367,7 @@ const task=container.querySelector(".task");
 
 task.addEventListener("reward",()=>{
 
-points+=3000;
+points+=1500;
 
 saveState();
 updateUI();
