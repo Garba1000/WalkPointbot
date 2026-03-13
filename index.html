@@ -86,7 +86,7 @@ position:absolute;
 top:50px;
 left:50%;
 transform:translateX(-50%);
-background:#ff0000; /* changed to red */
+background:#ff0000;
 color:#fff;
 padding:15px 20px;
 border-radius:10px;
@@ -173,46 +173,42 @@ text-align:center;
 
 const webApp = Telegram.WebApp;
 
-/* FIXED NEW USER POINTS ISSUE */
+/* SAFE BALANCE STORAGE */
 let savedPoints = localStorage.getItem("points");
+let points = savedPoints ? parseInt(savedPoints) : 0;
 
-// If savedPoints exists and is a valid number, use it; else start at 0
-let points = (savedPoints && !isNaN(savedPoints)) ? parseInt(savedPoints) : 0;
-
-// Clear invalid old points (e.g., 3000 for new users)
-if(points > 1000){
-    points = 0;
-    localStorage.setItem("points", points);
+if(isNaN(points)){
+points = 0;
 }
 
 let energy = parseInt(localStorage.getItem("energy") || "50");
 
 function updateUI(){
-    document.getElementById("points").innerText = points;
-    document.getElementById("energy").innerText = energy;
+document.getElementById("points").innerText = points;
+document.getElementById("energy").innerText = energy;
 }
 
 function saveState(){
-    localStorage.setItem("points", points);
-    localStorage.setItem("energy", energy);
+localStorage.setItem("points", points);
+localStorage.setItem("energy", energy);
 }
 
 /* JOIN */
 function joinChannelClicked(){
-    window.open("https://t.me/crytocurrentupdate","_blank");
-    document.getElementById("joinPopup").style.display = "none";
-    document.getElementById("mainPage").style.display = "block";
+window.open("https://t.me/crytocurrentupdate","_blank");
+document.getElementById("joinPopup").style.display = "none";
+document.getElementById("mainPage").style.display = "block";
 }
 
 function showJoinPopupAfterAds(){
-    try{
-        const rewardAd = window.Adsgram.init({blockId:"24981"});
-        rewardAd.show().finally(()=>{
-            document.getElementById("joinPopup").style.display = "flex";
-        });
-    }catch(e){
-        document.getElementById("joinPopup").style.display = "flex";
-    }
+try{
+const rewardAd = window.Adsgram.init({blockId:"24981"});
+rewardAd.show().finally(()=>{
+document.getElementById("joinPopup").style.display = "flex";
+});
+}catch(e){
+document.getElementById("joinPopup").style.display = "flex";
+}
 }
 
 /* WALK WHEEL */
@@ -231,19 +227,19 @@ const walkSound = new Audio("https://actions.google.com/sounds/v1/foley/footstep
 walkSound.loop = true;
 
 function drawWheel(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.save();
-    ctx.translate(canvas.width/2,canvas.height/2);
-    ctx.rotate(rotation);
-    ctx.beginPath();
-    ctx.arc(0,0,80,0,Math.PI*2);
-    ctx.fillStyle="#ff0000"; // wheel color red
-    ctx.fill();
-    ctx.fillStyle="#fff";
-    ctx.font="18px Arial";
-    ctx.textAlign="center";
-    ctx.fillText("WALK",0,5);
-    ctx.restore();
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.save();
+ctx.translate(canvas.width/2,canvas.height/2);
+ctx.rotate(rotation);
+ctx.beginPath();
+ctx.arc(0,0,80,0,Math.PI*2);
+ctx.fillStyle="#ff0000";
+ctx.fill();
+ctx.fillStyle="#fff";
+ctx.font="18px Arial";
+ctx.textAlign="center";
+ctx.fillText("WALK",0,5);
+ctx.restore();
 }
 
 drawWheel();
@@ -252,181 +248,235 @@ canvas.addEventListener("click", startWalk);
 canvas.addEventListener("touchstart", startWalk);
 
 function startWalk(){
-    if(wheelRunning || claimAvailable) return;
-    wheelRunning = true;
-    walkSound.play();
-    scratchMsg.innerText = "🚶 Walking...";
-    rotateWheel();
-    runWalkCycle();
+if(wheelRunning || claimAvailable) return;
+wheelRunning = true;
+walkSound.play();
+scratchMsg.innerText = "🚶 Walking...";
+rotateWheel();
+runWalkCycle();
 }
 
 function rotateWheel(){
-    if(!wheelRunning) return;
-    rotation += 0.15;
-    drawWheel();
-    requestAnimationFrame(rotateWheel);
+if(!wheelRunning) return;
+rotation += 0.15;
+drawWheel();
+requestAnimationFrame(rotateWheel);
 }
 
 function runWalkCycle(){
-    if(adsShown >= 6){
-        wheelRunning = false;
-        walkSound.pause();
-        claimAvailable = true;
-        claimBtn.classList.remove("hidden");
-        scratchMsg.innerText = "🎉 Walk completed! Claim reward";
-        return;
-    }
-    setTimeout(()=>{
-        showTwoAds();
-    }, 20000);
+if(adsShown >= 6){
+wheelRunning = false;
+walkSound.pause();
+claimAvailable = true;
+claimBtn.classList.remove("hidden");
+scratchMsg.innerText = "🎉 Walk completed! Claim reward";
+return;
+}
+setTimeout(()=>{
+showTwoAds();
+},20000);
 }
 
 function showTwoAds(){
-    showAd(()=>{
-        showAd(()=>{
-            adsShown += 2;
-            runWalkCycle();
-        });
-    });
+showAd(()=>{
+showAd(()=>{
+adsShown += 2;
+runWalkCycle();
+});
+});
 }
 
 function showAd(callback){
-    try{
-        const randomBlock = rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
-        const rewardAd = window.Adsgram.init({blockId: randomBlock});
-        rewardAd.show().finally(()=>{
-            if(callback) callback();
-        });
-    }catch(e){
-        if(callback) callback();
-    }
+try{
+const randomBlock = rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
+const rewardAd = window.Adsgram.init({blockId: randomBlock});
+rewardAd.show().finally(()=>{
+if(callback) callback();
+});
+}catch(e){
+if(callback) callback();
+}
 }
 
 /* CLAIM */
 const scratchClaimTasks = ["task-24985","task-24986","task-24987","task-24988"];
 
 claimBtn.addEventListener("click", ()=>{
-    if(!claimAvailable) return;
-    const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
-    const container = document.getElementById("adsgram-container");
-    container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-    container.classList.remove("hidden");
-    claimBtn.classList.add("hidden");
-    const task = container.querySelector(".task");
-    task.addEventListener("reward", ()=>{
-        points += 1500; // claim reward
-        saveState();
-        updateUI();
-        const popup = document.getElementById("claimSuccessMsg");
-        popup.style.display = "block";
-        setTimeout(()=>{
-            popup.style.display = "none";
-        }, 30000);
-        resetWalk();
-        container.classList.add("hidden");
-    });
+if(!claimAvailable) return;
+
+const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
+const container = document.getElementById("adsgram-container");
+
+container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
+container.classList.remove("hidden");
+
+claimBtn.classList.add("hidden");
+
+const task = container.querySelector(".task");
+
+task.addEventListener("reward", ()=>{
+
+points += 1500;
+
+saveState();
+updateUI();
+
+const popup = document.getElementById("claimSuccessMsg");
+
+popup.style.display = "block";
+
+setTimeout(()=>{
+popup.style.display = "none";
+},30000);
+
+resetWalk();
+
+container.classList.add("hidden");
+
+});
+
 });
 
 function resetWalk(){
-    adsShown = 0;
-    claimAvailable = false;
-    wheelRunning = false;
-    claimBtn.classList.add("hidden");
-    scratchMsg.innerText = "🚶 Tap the wheel to start walking";
-    drawWheel();
+adsShown = 0;
+claimAvailable = false;
+wheelRunning = false;
+claimBtn.classList.add("hidden");
+scratchMsg.innerText = "🚶 Tap the wheel to start walking";
+drawWheel();
 }
 
 /* TASK SYSTEM */
+
 let currentTaskIndex = 0;
-const taskIds = ["task-24985","task-24986","task-24987","task-24988","task-24989"];
+
+const taskIds = [
+"task-24985",
+"task-24986",
+"task-24987",
+"task-24988",
+"task-24989"
+];
 
 function loadTask(blockId){
-    const container = document.getElementById("adsgram-container");
-    container.innerHTML = `<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
-    container.classList.remove("hidden");
-    document.getElementById("taskIntro").classList.add("hidden");
 
-    const task = container.querySelector(".task");
-    task.addEventListener("reward", ()=>{
-        points += 10; // reward 10 points per task
-        energy += 2;
-        saveState();
-        updateUI();
+const container = document.getElementById("adsgram-container");
 
-        if(currentTaskIndex < taskIds.length-1){
-            document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
-        } else {
-            document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
-        }
-    });
+container.innerHTML = `<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
+
+container.classList.remove("hidden");
+
+document.getElementById("taskIntro").classList.add("hidden");
+
+const task = container.querySelector(".task");
+
+task.addEventListener("reward", ()=>{
+
+points += 10;
+energy += 2;
+
+saveState();
+updateUI();
+
+if(currentTaskIndex < taskIds.length-1){
+document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
+}else{
+document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
+}
+
+});
+
 }
 
 document.getElementById("startTasksBtn").addEventListener("click", ()=>{
-    currentTaskIndex = 0;
-    loadTask(taskIds[currentTaskIndex]);
+currentTaskIndex = 0;
+loadTask(taskIds[currentTaskIndex]);
 });
 
 document.getElementById("nextTaskBtn").addEventListener("click", ()=>{
-    currentTaskIndex++;
-    document.getElementById("nextTaskBtnContainer").classList.add("hidden");
-    loadTask(taskIds[currentTaskIndex]);
+currentTaskIndex++;
+document.getElementById("nextTaskBtnContainer").classList.add("hidden");
+loadTask(taskIds[currentTaskIndex]);
 });
 
 document.getElementById("finalTaskBtn").addEventListener("click", ()=>{
-    try{
-        const rewardAd = window.Adsgram.init({blockId:"23731"});
-        rewardAd.show().then(()=>{
-            energy += 2;
-            saveState();
-            updateUI();
-            document.getElementById("taskIntro").classList.remove("hidden");
-            document.getElementById("adsgram-container").classList.add("hidden");
-            document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-            currentTaskIndex = 0;
-        });
-    }catch(e){
-        document.getElementById("taskIntro").classList.remove("hidden");
-        document.getElementById("adsgram-container").classList.add("hidden");
-        document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-        currentTaskIndex = 0;
-    }
+
+try{
+
+const rewardAd = window.Adsgram.init({blockId:"23731"});
+
+rewardAd.show().then(()=>{
+
+energy += 2;
+
+saveState();
+updateUI();
+
+document.getElementById("taskIntro").classList.remove("hidden");
+document.getElementById("adsgram-container").classList.add("hidden");
+document.getElementById("finalTaskBtnContainer").classList.add("hidden");
+
+currentTaskIndex = 0;
+
+});
+
+}catch(e){
+
+document.getElementById("taskIntro").classList.remove("hidden");
+document.getElementById("adsgram-container").classList.add("hidden");
+document.getElementById("finalTaskBtnContainer").classList.add("hidden");
+
+currentTaskIndex = 0;
+
+}
+
 });
 
 /* WITHDRAW */
+
 document.getElementById("withdrawBtn").addEventListener("click", ()=>{
-    const method = document.getElementById("method").value;
-    const address = document.getElementById("address").value.trim();
-    const amount = parseInt(document.getElementById("amount").value);
 
-    if(isNaN(amount) || amount < 100000){
-        alert("Minimum withdrawal is 100,000 points (~$100)");
-        return;
-    }
-    if(points < amount){
-        alert("Not enough points");
-        return;
-    }
+const method = document.getElementById("method").value;
+const address = document.getElementById("address").value.trim();
+const amount = parseInt(document.getElementById("amount").value);
 
-    const user = webApp.initDataUnsafe.user || {};
-    const msg = JSON.stringify({
-        type:"withdraw_request",
-        user_id:user.id,
-        username:user.username || "No username",
-        amount,method,address
-    });
-    Telegram.WebApp.sendData(msg);
+if(isNaN(amount) || amount < 100000){
+alert("Minimum withdrawal is 100,000 points (~$100)");
+return;
+}
 
-    points -= amount;
-    saveState();
-    updateUI();
+if(points < amount){
+alert("Not enough points");
+return;
+}
 
-    alert("✅ Withdrawal request sent!");
+const user = webApp.initDataUnsafe.user || {};
+
+const msg = JSON.stringify({
+type:"withdraw_request",
+user_id:user.id,
+username:user.username || "No username",
+amount,
+method,
+address
+});
+
+Telegram.WebApp.sendData(msg);
+
+points -= amount;
+
+saveState();
+updateUI();
+
+alert("✅ Withdrawal request sent!");
+
 });
 
 /* LOAD */
+
 document.addEventListener("DOMContentLoaded", ()=>{
-    updateUI();
-    showJoinPopupAfterAds();
+updateUI();
+showJoinPopupAfterAds();
 });
 
 </script>
