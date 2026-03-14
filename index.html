@@ -96,6 +96,22 @@ display:none;
 z-index:9999;
 text-align:center;
 }
+
+#welcomeBonusMsg{
+position:absolute;
+top:120px;
+left:50%;
+transform:translateX(-50%);
+background:#ff0000;
+color:#fff;
+padding:15px 20px;
+border-radius:10px;
+font-weight:bold;
+font-size:16px;
+display:none;
+z-index:9999;
+text-align:center;
+}
 </style>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -126,6 +142,10 @@ text-align:center;
 
 <div id="claimSuccessMsg">
 🎉 Congratulations! You have successfully received 1500 points. Walk more and earn.
+</div>
+
+<div id="welcomeBonusMsg">
+🎉 You're successful receive welcome bonus 500 points.
 </div>
 
 <div class="section">
@@ -165,6 +185,8 @@ text-align:center;
 
 <div class="btn" id="withdrawBtn">Request Withdraw</div>
 
+<div class="btn" id="welcomeBonusBtn">🎁 Claim 500 Welcome Bonus</div>
+
 </div>
 
 </div>
@@ -174,6 +196,7 @@ text-align:center;
 const webApp = Telegram.WebApp;
 
 /* SAFE BALANCE STORAGE */
+
 let savedPoints = localStorage.getItem("points");
 let points = savedPoints ? parseInt(savedPoints) : 0;
 
@@ -194,6 +217,7 @@ localStorage.setItem("energy", energy);
 }
 
 /* JOIN */
+
 function joinChannelClicked(){
 window.open("https://t.me/crytocurrentupdate","_blank");
 document.getElementById("joinPopup").style.display = "none";
@@ -212,6 +236,7 @@ document.getElementById("joinPopup").style.display = "flex";
 }
 
 /* WALK WHEEL */
+
 const rewardBlocks = ["24982","24983","24984"];
 let adsShown = 0;
 let claimAvailable = false;
@@ -299,9 +324,11 @@ if(callback) callback();
 }
 
 /* CLAIM */
+
 const scratchClaimTasks = ["task-24985","task-24986","task-24987","task-24988"];
 
 claimBtn.addEventListener("click", ()=>{
+
 if(!claimAvailable) return;
 
 const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
@@ -429,6 +456,60 @@ document.getElementById("finalTaskBtnContainer").classList.add("hidden");
 currentTaskIndex = 0;
 
 }
+
+});
+
+/* WELCOME BONUS */
+
+let welcomeTaskCount = 0;
+const welcomeRequired = 6;
+
+document.getElementById("welcomeBonusBtn").addEventListener("click", ()=>{
+
+if(welcomeTaskCount >= welcomeRequired){
+alert("Welcome bonus already claimed.");
+return;
+}
+
+const randomTaskId = taskIds[Math.floor(Math.random()*taskIds.length)];
+
+const container = document.getElementById("adsgram-container");
+
+container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
+container.classList.remove("hidden");
+
+const task = container.querySelector(".task");
+
+task.addEventListener("reward", ()=>{
+
+welcomeTaskCount++;
+
+if(welcomeTaskCount < welcomeRequired){
+
+alert("Task completed. Click the button " + (welcomeRequired - welcomeTaskCount) + " more time(s) to receive the 500 bonus.");
+
+}else{
+
+points += 500;
+
+saveState();
+updateUI();
+
+const msg = document.getElementById("welcomeBonusMsg");
+
+msg.style.display = "block";
+
+setTimeout(()=>{
+msg.style.display = "none";
+},30000);
+
+welcomeTaskCount = welcomeRequired;
+
+container.classList.add("hidden");
+
+}
+
+});
 
 });
 
