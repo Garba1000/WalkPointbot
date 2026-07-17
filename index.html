@@ -460,6 +460,18 @@ input::placeholder{
   color:#000;
 }
 
+/* DISCLAIMER */
+.disclaimer{
+  background:rgba(255,165,0,0.2);
+  border:1px solid #ffa500;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:10px;
+  opacity:0.85;
+  margin-top:10px;
+  line-height:1.4;
+}
+
 /* ANIMATIONS */
 @keyframes floatUp{
   0%{ opacity:1; transform:translateY(0); }
@@ -561,13 +573,16 @@ input::placeholder{
 <!-- ADS SECTION -->
 <div class="section ads">
   <div class="section-content">
-    <h2>📺 Watch & Earn</h2>
+    <h2>📺 Watch & Earn (Optional)</h2>
     <button class="btn" id="rewardAdBtn">Watch Reward Ad +10</button>
     <button class="btn" id="taskAdBtn">Complete Task +15</button>
     <button class="btn" id="surveyBtn">Survey +20</button>
     <p style="font-size:11px; margin-top:12px; opacity:0.6; text-align:center;">
       ⏰ Ads refresh every 30 minutes
     </p>
+    <div class="disclaimer">
+      ⚠️ <strong>DISCLAIMER:</strong> Watching ads is completely optional. You can earn coins through farming, daily bonuses, and tapping without watching any advertisements. Ad rewards are bonus opportunities only.
+    </div>
   </div>
 </div>
 
@@ -639,6 +654,10 @@ input::placeholder{
     <p style="font-size:10px; margin-top:12px; opacity:0.6; text-align:center;">
       ✅ Instant withdrawal | No fees
     </p>
+
+    <div class="disclaimer">
+      ⚠️ <strong>DISCLAIMER:</strong> Withdrawal terms and conditions apply. All withdrawals are processed according to our payment policy. Please ensure your wallet address is correct before submission. We are not responsible for loss of funds due to incorrect wallet addresses.
+    </div>
   </div>
 </div>
 
@@ -651,6 +670,9 @@ input::placeholder{
     <p style="font-size:11px; margin-top:8px; opacity:0.7;">
       Earn 50 coins for each friend!
     </p>
+    <div class="disclaimer">
+      ⚠️ <strong>DISCLAIMER:</strong> Referral rewards are subject to verification. Fraudulent referrals or artificial account creation will result in disqualification and account suspension. Earn rewards legitimately only.
+    </div>
   </div>
 </div>
 
