@@ -3,563 +3,954 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Walk & Earn</title>
-
-<style>
-body{
-font-family:Arial,sans-serif;
-background:#000;
-color:#fff;
-margin:0;
-padding:20px;
-}
-
-h1,h2{margin-bottom:10px;}
-
-.section{
-margin-top:20px;
-padding:15px;
-background:#111;
-border-radius:10px;
-}
-
-.btn{
-display:inline-block;
-margin-top:10px;
-padding:10px 15px;
-border-radius:8px;
-background:#ff0000;
-color:#fff;
-font-weight:bold;
-cursor:pointer;
-text-align:center;
-}
-
-.btn:active{transform:scale(0.95)}
-
-.hidden{display:none}
-
-input,select{
-padding:8px;
-margin:5px 0;
-width:100%;
-border-radius:5px;
-border:none;
-}
-
-canvas{
-border-radius:10px;
-display:block;
-margin:10px auto;
-}
-
-#joinPopup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.95);
-display:none;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-text-align:center;
-padding:20px;
-z-index:9999;
-}
-
-#joinPopup button{
-background:#ff0000;
-color:#fff;
-padding:12px 20px;
-margin-top:20px;
-border:none;
-border-radius:10px;
-font-weight:bold;
-font-size:18px;
-cursor:pointer;
-}
-
-#claimSuccessMsg{
-position:absolute;
-top:50px;
-left:50%;
-transform:translateX(-50%);
-background:#ff0000;
-color:#fff;
-padding:15px 20px;
-border-radius:10px;
-font-weight:bold;
-font-size:16px;
-display:none;
-z-index:9999;
-text-align:center;
-}
-
-#welcomeBonusMsg{
-position:absolute;
-top:120px;
-left:50%;
-transform:translateX(-50%);
-background:#ff0000;
-color:#fff;
-padding:15px 20px;
-border-radius:10px;
-font-weight:bold;
-font-size:16px;
-display:none;
-z-index:9999;
-text-align:center;
-}
-</style>
+<title>Farm & Earn</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background: linear-gradient(180deg, #2d5a3d 0%, #1a3a24 100%);
+  color:white;
+  font-family:'Arial', sans-serif;
+  padding:10px;
+  overflow-x:hidden;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  background:rgba(0,0,0,0.3);
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.logo{
+  font-size:20px;
+  font-weight:bold;
+  color:#00ff88;
+}
+
+.level-badge{
+  background:#ff6b00;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+/* FARM CANVAS */
+.farm-container{
+  position:relative;
+  width:100%;
+  height:280px;
+  background: linear-gradient(180deg, #4a7c59 0%, #2d5a3d 100%);
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:12px;
+  border:2px solid #00ff88;
+  box-shadow:0 4px 15px rgba(0,255,136,0.2);
+}
+
+.farm-background{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background-image:
+    repeating-linear-gradient(90deg, #3a6a4a 0px, #3a6a4a 40px, transparent 40px, transparent 80px),
+    repeating-linear-gradient(0deg, #3a6a4a 0px, #3a6a4a 40px, transparent 40px, transparent 80px);
+  opacity:0.5;
+}
+
+.farm-content{
+  position:relative;
+  z-index:2;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+.tap-zone{
+  width:100px;
+  height:100px;
+  background:radial-gradient(circle, #ffeb3b, #ffc107);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:50px;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(255,235,59,0.4);
+  transition:all 0.1s;
+  user-select:none;
+}
+
+.tap-zone:active{
+  transform:scale(0.85);
+  box-shadow:0 3px 10px rgba(255,235,59,0.2);
+}
+
+.tap-count{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:rgba(0,0,0,0.6);
+  padding:8px 14px;
+  border-radius:20px;
+  font-size:12px;
+}
+
+.farm-level{
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  background:linear-gradient(135deg, #0066ff, #00ccff);
+  padding:8px 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.crops{
+  position:absolute;
+  bottom:20px;
+  left:20px;
+  display:flex;
+  gap:8px;
+  font-size:24px;
+}
+
+.crop{
+  animation:sway 3s ease-in-out infinite;
+}
+
+.crop:nth-child(2){
+  animation-delay:0.5s;
+}
+
+.crop:nth-child(3){
+  animation-delay:1s;
+}
+
+@keyframes sway{
+  0%, 100%{ transform:rotate(0deg); }
+  50%{ transform:rotate(3deg); }
+}
+
+/* STATS GRID */
+.stats-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.stat-card{
+  background:rgba(0,0,0,0.4);
+  border:1px solid #00ff88;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+}
+
+.stat-card h3{
+  font-size:11px;
+  opacity:0.7;
+  margin-bottom:6px;
+}
+
+.stat-card .value{
+  font-size:24px;
+  font-weight:bold;
+  color:#00ff88;
+}
+
+.stat-card .sub{
+  font-size:10px;
+  opacity:0.6;
+  margin-top:4px;
+}
+
+/* PROGRESS */
+.progress-section{
+  background:rgba(0,0,0,0.4);
+  border:1px solid #00ff88;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.progress-section h3{
+  font-size:12px;
+  margin-bottom:8px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.progress-bar{
+  width:100%;
+  height:8px;
+  background:rgba(255,255,255,0.1);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg, #00ff88, #00ccff);
+  width:0%;
+  transition:width 0.3s;
+}
+
+/* NAVIGATION TABS */
+.nav-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+  background:rgba(0,0,0,0.3);
+  padding:8px;
+  border-radius:12px;
+}
+
+.nav-tab{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:transparent;
+  color:white;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:bold;
+  transition:all 0.3s;
+}
+
+.nav-tab.active{
+  background:linear-gradient(135deg, #00ff88, #00ccff);
+  color:#000;
+}
+
+/* SECTIONS */
+.section{
+  display:none;
+}
+
+.section.active{
+  display:block;
+}
+
+.section-content{
+  background:rgba(0,0,0,0.4);
+  border:1px solid #00ff88;
+  padding:14px;
+  border-radius:12px;
+}
+
+.section-content h2{
+  font-size:14px;
+  margin-bottom:12px;
+  color:#00ff88;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg, #00ff88, #00ccff);
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:13px;
+  transition:all 0.2s;
+  margin-top:10px;
+}
+
+.btn:active{
+  transform:scale(0.95);
+}
+
+.btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:rgba(0,0,0,0.5);
+  color:white;
+  margin-top:8px;
+  border:1px solid #00ff88;
+  font-size:12px;
+}
+
+input::placeholder{
+  color:rgba(255,255,255,0.5);
+}
+
+.input-group{
+  margin-bottom:8px;
+}
+
+.label{
+  font-size:11px;
+  opacity:0.7;
+  display:block;
+  margin-bottom:4px;
+}
+
+/* EARNINGS CARD */
+.earnings-card{
+  background:linear-gradient(135deg, #ff6b00, #ff8f00);
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:12px;
+  text-align:center;
+}
+
+.earnings-card .label{
+  opacity:0.9;
+  color:white;
+}
+
+.earnings-card .value{
+  font-size:32px;
+  font-weight:bold;
+  color:white;
+  margin:8px 0;
+}
+
+.earnings-card .sub{
+  font-size:11px;
+  opacity:0.8;
+}
+
+/* WITHDRAWAL OPTIONS */
+.withdraw-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.withdraw-option{
+  background:rgba(0,0,0,0.5);
+  border:2px solid #00ff88;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s;
+  font-size:12px;
+}
+
+.withdraw-option.selected{
+  background:linear-gradient(135deg, #00ff88, #00ccff);
+  color:#000;
+  font-weight:bold;
+}
+
+.withdraw-option:active{
+  transform:scale(0.95);
+}
+
+/* POPUP */
+#popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  padding:20px;
+}
+
+.popup-content{
+  background:linear-gradient(135deg, #1a3a24, #2d5a3d);
+  border:2px solid #00ff88;
+  border-radius:16px;
+  padding:20px;
+  max-width:90%;
+  text-align:center;
+  box-shadow:0 0 30px rgba(0,255,136,0.3);
+}
+
+.popup-content h2{
+  margin-bottom:12px;
+  color:#00ff88;
+}
+
+.popup-content p{
+  font-size:13px;
+  margin-bottom:16px;
+  opacity:0.9;
+}
+
+.popup-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.popup-buttons button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.popup-buttons .confirm{
+  background:linear-gradient(135deg, #00ff88, #00ccff);
+  color:#000;
+}
+
+.popup-buttons .cancel{
+  background:rgba(255,255,255,0.1);
+  color:white;
+}
+
+/* DAILY BONUS */
+.daily-slots{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.daily-slot{
+  aspect-ratio:1;
+  background:rgba(0,0,0,0.5);
+  border:2px solid #00ff88;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.daily-slot.completed{
+  background:linear-gradient(135deg, #00ff88, #00ccff);
+  color:#000;
+}
+
+/* ANIMATIONS */
+@keyframes floatUp{
+  0%{ opacity:1; transform:translateY(0); }
+  100%{ opacity:0; transform:translateY(-40px); }
+}
+
+.float-text{
+  animation:floatUp 1s ease-out forwards;
+}
+</style>
 </head>
 
 <body>
 
-<div id="joinPopup">
-<h2>📢 Join Our Telegram Channel to Continue</h2>
-<p>You must join before using the app.</p>
-<button onclick="joinChannelClicked()">👉 Join @earnzoners</button>
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">🌾 Farm & Earn</div>
+  <div class="level-badge">Lv. <span id="level">1</span></div>
 </div>
 
-<div id="mainPage" style="display:none;">
-
-<h1>🚶 Walk & Earn Points</h1>
-<p>Points: <span id="points">0</span> | Energy: <span id="energy">50</span></p>
-
-<div class="section">
-
-<canvas id="scratchCanvas" width="300" height="200"></canvas>
-<p id="scratchMsg">🚶 Tap the wheel to start walking</p>
-
-<div class="btn hidden" id="claimBtn">🎁 Claim 1500 Points</div>
-
+<!-- FARM GAME -->
+<div class="farm-container">
+  <div class="farm-background"></div>
+  <div class="farm-content">
+    <div class="tap-count">Taps: <span id="farmTaps">0</span></div>
+    <div class="tap-zone" id="tapZone">🌾</div>
+    <div class="crops">
+      <div class="crop">🌻</div>
+      <div class="crop">🌱</div>
+      <div class="crop">🌿</div>
+    </div>
+    <div class="farm-level">
+      <div style="font-size:10px; opacity:0.8;">Farm Level</div>
+      <div style="font-size:18px;"><span id="farmLevel">1</span>/60</div>
+    </div>
+  </div>
 </div>
 
-<div id="claimSuccessMsg">
-🎉 Congratulations! You have successfully received 1500 points. Walk more and earn.
+<!-- EARNINGS DISPLAY -->
+<div class="earnings-card">
+  <div class="label">💎 Total Coins Earned</div>
+  <div class="value" id="coins">0</div>
+  <div class="sub">~₦<span id="coinsNGN">0</span></div>
 </div>
 
-<div id="welcomeBonusMsg">
-🎉 You're successful receive welcome bonus 500 points.
+<!-- STATS GRID -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <h3>👆 Total Taps</h3>
+    <div class="value" id="totalTaps">0</div>
+    <div class="sub">Lifetime</div>
+  </div>
+  <div class="stat-card">
+    <h3>🏆 Rank</h3>
+    <div class="value" id="rank">Bronze</div>
+    <div class="sub">Starter</div>
+  </div>
 </div>
 
-<div class="section">
-<h2>📋 Tasks</h2>
-
-<div id="taskIntro">
-<div class="btn" id="startTasksBtn">Start Tasks</div>
+<!-- PROGRESS BAR -->
+<div class="progress-section">
+  <h3>
+    <span>Farm Progress</span>
+    <span id="progressPercent">0%</span>
+  </h3>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
 </div>
 
-<div id="adsgram-container" class="hidden"></div>
-
-<div id="nextTaskBtnContainer" class="hidden">
-<div class="btn" id="nextTaskBtn">➡️ Next Task</div>
+<!-- NAVIGATION TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('farm')">🎮 Farm</button>
+  <button class="nav-tab" onclick="switchTab('ads')">📺 Ads</button>
+  <button class="nav-tab" onclick="switchTab('daily')">🎁 Daily</button>
+  <button class="nav-tab" onclick="switchTab('withdraw')">💳 Withdraw</button>
 </div>
 
-<div id="finalTaskBtnContainer" class="hidden">
-<div class="btn" id="finalTaskBtn">🏁 Finish Tasks</div>
+<!-- FARM SECTION -->
+<div class="section farm active">
+  <div class="section-content">
+    <h2>🌾 Farm System</h2>
+    <button class="btn" id="tapBtn">TAP FOR COINS +1</button>
+    <button class="btn" id="plantBtn">Plant Crop +5 (Costs 10 coins)</button>
+    <button class="btn" id="harvestBtn">Harvest Farm +50</button>
+    
+    <div class="progress-section" style="margin-top:12px; background:rgba(0,0,0,0.3); border:1px solid #00ccff;">
+      <h3>
+        <span>Next Harvest</span>
+        <span id="harvestTime">--:--</span>
+      </h3>
+      <div class="progress-bar">
+        <div class="progress-fill" id="harvestProgress"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- ADS SECTION -->
+<div class="section ads">
+  <div class="section-content">
+    <h2>📺 Watch & Earn</h2>
+    <button class="btn" id="rewardAdBtn">Watch Reward Ad +10</button>
+    <button class="btn" id="taskAdBtn">Complete Task +15</button>
+    <button class="btn" id="surveyBtn">Survey +20</button>
+    <p style="font-size:11px; margin-top:12px; opacity:0.6; text-align:center;">
+      ⏰ Ads refresh every 30 minutes
+    </p>
+  </div>
 </div>
 
-<div class="section">
+<!-- DAILY SECTION -->
+<div class="section daily">
+  <div class="section-content">
+    <h2>🎁 Daily Bonus</h2>
+    <p style="font-size:11px; opacity:0.7; margin-bottom:12px;">Complete all 4 daily tasks to earn 900 coins!</p>
+    
+    <div class="daily-slots">
+      <div class="daily-slot" onclick="completeDaily(0)">
+        <span id="daily0">1️⃣</span>
+      </div>
+      <div class="daily-slot" onclick="completeDaily(1)">
+        <span id="daily1">2️⃣</span>
+      </div>
+      <div class="daily-slot" onclick="completeDaily(2)">
+        <span id="daily2">3️⃣</span>
+      </div>
+      <div class="daily-slot" onclick="completeDaily(3)">
+        <span id="daily3">4️⃣</span>
+      </div>
+    </div>
 
-<h2>💳 Withdraw</h2>
+    <div class="progress-bar" style="margin-bottom:12px;">
+      <div class="progress-fill" id="dailyProgress"></div>
+    </div>
 
-<p><b>Minimum withdrawal is 100,000 points (~$100)</b></p>
-
-<select id="method">
-<option value="Litecoin">Litecoin</option>
-<option value="USDT">USDT</option>
-<option value="Payeer">Payeer</option>
-<option value="Bank">Bank Account</option>
-</select>
-
-<input type="text" id="address" placeholder="Enter wallet or account"/>
-<input type="number" id="amount" placeholder="Minimum 100000"/>
-
-<div class="btn" id="withdrawBtn">Request Withdraw</div>
-
-<div class="btn" id="welcomeBonusBtn">🎁 Claim 500 Welcome Bonus</div>
-
+    <button class="btn" id="claimDailyBtn" disabled>Claim Daily Reward</button>
+  </div>
 </div>
 
+<!-- WITHDRAW SECTION -->
+<div class="section withdraw">
+  <div class="section-content">
+    <h2>💳 Withdraw Earnings</h2>
+    
+    <p style="font-size:12px; margin:12px 0; opacity:0.8;">
+      💰 <strong id="withdrawBalance">0</strong> coins available
+    </p>
+
+    <div class="input-group">
+      <label class="label">Select Payment Method</label>
+      <div class="withdraw-options">
+        <div class="withdraw-option" onclick="selectMethod('usdt')">💵 USDT</div>
+        <div class="withdraw-option" onclick="selectMethod('litecoin')">Ł Litecoin</div>
+        <div class="withdraw-option" onclick="selectMethod('payeer')">💳 Payeer</div>
+        <div class="withdraw-option" onclick="selectMethod('bank')">🏦 Bank</div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="label">Wallet Address</label>
+      <input id="wallet" placeholder="Enter wallet address" type="text">
+    </div>
+
+    <div class="input-group">
+      <label class="label">Amount (Min: 1000 coins = ₦5,000)</label>
+      <input id="amount" placeholder="Enter amount" type="number" min="1000">
+    </div>
+
+    <div style="background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; margin-bottom:12px; font-size:11px;">
+      <div>📊 Exchange Rate: 1 Coin = ₦5</div>
+      <div style="margin-top:4px;">You'll receive: ₦<span id="convertedAmount">0</span></div>
+    </div>
+
+    <button class="btn" id="withdrawBtn">WITHDRAW NOW</button>
+
+    <p style="font-size:10px; margin-top:12px; opacity:0.6; text-align:center;">
+      ✅ Instant withdrawal | No fees
+    </p>
+  </div>
+</div>
+
+<!-- REFERRAL SECTION -->
+<div class="section withdraw">
+  <div class="section-content" style="margin-top:12px;">
+    <h2>👥 Invite Friends</h2>
+    <input id="refLink" readonly value="https://t.me/YourBotName?start=USER_ID">
+    <button class="btn" id="copyRefBtn">Copy Referral Link</button>
+    <p style="font-size:11px; margin-top:8px; opacity:0.7;">
+      Earn 50 coins for each friend!
+    </p>
+  </div>
+</div>
+
+<!-- POPUP -->
+<div id="popup">
+  <div class="popup-content">
+    <h2 id="popupTitle">Message</h2>
+    <p id="popupMessage"></p>
+    <div class="popup-buttons">
+      <button class="cancel" onclick="closePopup()">Close</button>
+      <button class="confirm" id="popupConfirm" onclick="closePopup()">OK</button>
+    </div>
+  </div>
 </div>
 
 <script>
+const tg = window.Telegram?.WebApp;
+tg?.expand?.();
 
-const webApp = Telegram.WebApp;
+// GAME STATE
+let gameState = {
+  coins: parseInt(localStorage.getItem('coins') || '0'),
+  totalTaps: parseInt(localStorage.getItem('totalTaps') || '0'),
+  farmLevel: parseInt(localStorage.getItem('farmLevel') || '1'),
+  lastHarvest: parseInt(localStorage.getItem('lastHarvest') || Date.now()),
+  dailyProgress: JSON.parse(localStorage.getItem('dailyProgress') || '[false,false,false,false]'),
+  lastDaily: parseInt(localStorage.getItem('lastDaily') || '0'),
+  selectedMethod: localStorage.getItem('selectedMethod') || 'usdt'
+};
 
-/* SAFE BALANCE STORAGE */
+let harvestCountdown = null;
+let adCooldown = {};
 
-let savedPoints = localStorage.getItem("points");
-let points = savedPoints ? parseInt(savedPoints) : 0;
-
-if(isNaN(points)){
-points = 0;
+// UI UPDATE
+function updateUI() {
+  document.getElementById('coins').innerText = gameState.coins;
+  document.getElementById('coinsNGN').innerText = gameState.coins * 5;
+  document.getElementById('totalTaps').innerText = gameState.totalTaps;
+  document.getElementById('farmLevel').innerText = gameState.farmLevel;
+  document.getElementById('farmTaps').innerText = gameState.totalTaps % 10;
+  
+  let level = Math.floor(gameState.coins / 500) + 1;
+  document.getElementById('level').innerText = level;
+  
+  let ranks = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
+  let rankIndex = Math.min(Math.floor(gameState.coins / 5000), ranks.length - 1);
+  document.getElementById('rank').innerText = ranks[rankIndex];
+  
+  let progress = (gameState.farmLevel % 10) / 10 * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('progressPercent').innerText = Math.round(progress) + '%';
+  
+  document.getElementById('withdrawBalance').innerText = gameState.coins;
+  
+  updateDailyUI();
+  updateHarvestCountdown();
+  saveState();
 }
 
-let energy = parseInt(localStorage.getItem("energy") || "50");
-
-function updateUI(){
-document.getElementById("points").innerText = points;
-document.getElementById("energy").innerText = energy;
+function updateDailyUI() {
+  let completed = gameState.dailyProgress.filter(x => x).length;
+  let percent = (completed / 4) * 100;
+  document.getElementById('dailyProgress').style.width = percent + '%';
+  
+  gameState.dailyProgress.forEach((done, i) => {
+    let slot = document.getElementById(`daily${i}`);
+    let parent = slot.parentElement;
+    if (done) {
+      parent.classList.add('completed');
+      slot.innerText = '✅';
+    } else {
+      parent.classList.remove('completed');
+      slot.innerText = (i + 1) + '️⃣';
+    }
+  });
 }
 
-function saveState(){
-localStorage.setItem("points", points);
-localStorage.setItem("energy", energy);
+function updateHarvestCountdown() {
+  let elapsed = Date.now() - gameState.lastHarvest;
+  let remaining = Math.max(0, 300000 - elapsed); // 5 minutes
+  
+  let mins = Math.floor(remaining / 60000);
+  let secs = Math.floor((remaining % 60000) / 1000);
+  
+  document.getElementById('harvestTime').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+  
+  let percent = (elapsed / 300000) * 100;
+  document.getElementById('harvestProgress').style.width = Math.min(percent, 100) + '%';
 }
 
-/* JOIN */
+// FARM ACTIONS
+document.getElementById('tapBtn').onclick = () => {
+  gameState.coins += 1;
+  gameState.totalTaps += 1;
+  createFloatText('+1', '#00ff88');
+  updateUI();
+};
 
-function joinChannelClicked(){
-window.open("https://t.me/crytocurrentupdate","_blank");
-document.getElementById("joinPopup").style.display = "none";
-document.getElementById("mainPage").style.display = "block";
+document.getElementById('plantBtn').onclick = () => {
+  if (gameState.coins >= 10) {
+    gameState.coins -= 10;
+    gameState.farmLevel += 1;
+    createFloatText('-10 (Planted)', '#ff6b00');
+    updateUI();
+    showPopup('🌱 Planted!', 'Your crop is growing!');
+  } else {
+    showPopup('❌ Not Enough', 'You need 10 coins');
+  }
+};
+
+document.getElementById('harvestBtn').onclick = () => {
+  let elapsed = Date.now() - gameState.lastHarvest;
+  if (elapsed < 300000) {
+    let remaining = Math.ceil((300000 - elapsed) / 1000);
+    showPopup('⏳ Not Ready', `Harvest ready in ${remaining}s`);
+    return;
+  }
+  gameState.coins += 50;
+  gameState.lastHarvest = Date.now();
+  createFloatText('+50', '#00ff88');
+  updateUI();
+  showPopup('🎉 Harvested!', '+50 coins earned!');
+};
+
+// ADS
+document.getElementById('rewardAdBtn').onclick = async () => {
+  if (adCooldown['reward'] && Date.now() - adCooldown['reward'] < 60000) {
+    showPopup('⏳ Ad Cooldown', 'Wait 60 seconds');
+    return;
+  }
+  gameState.coins += 10;
+  adCooldown['reward'] = Date.now();
+  createFloatText('+10', '#00ff88');
+  updateUI();
+  showPopup('✅ Reward Added', '+10 coins!');
+};
+
+document.getElementById('taskAdBtn').onclick = () => {
+  if (adCooldown['task'] && Date.now() - adCooldown['task'] < 60000) {
+    showPopup('⏳ Task Cooldown', 'Wait 60 seconds');
+    return;
+  }
+  gameState.coins += 15;
+  adCooldown['task'] = Date.now();
+  createFloatText('+15', '#00ff88');
+  updateUI();
+  showPopup('✅ Task Done', '+15 coins!');
+};
+
+document.getElementById('surveyBtn').onclick = () => {
+  if (adCooldown['survey'] && Date.now() - adCooldown['survey'] < 120000) {
+    showPopup('⏳ Survey Cooldown', 'Wait 2 minutes');
+    return;
+  }
+  gameState.coins += 20;
+  adCooldown['survey'] = Date.now();
+  createFloatText('+20', '#00ff88');
+  updateUI();
+  showPopup('✅ Survey Complete', '+20 coins!');
+};
+
+// DAILY
+function completeDaily(index) {
+  let now = Date.now();
+  let dayAgo = now - 86400000;
+  
+  if (gameState.lastDaily < dayAgo) {
+    gameState.dailyProgress = [false, false, false, false];
+    gameState.lastDaily = now;
+  }
+  
+  if (!gameState.dailyProgress[index]) {
+    gameState.dailyProgress[index] = true;
+    gameState.coins += 225;
+    createFloatText('+225', '#00ff88');
+    updateUI();
+  }
+  
+  let allDone = gameState.dailyProgress.every(x => x);
+  if (allDone) {
+    document.getElementById('claimDailyBtn').disabled = false;
+  }
 }
 
-function showJoinPopupAfterAds(){
-try{
-const rewardAd = window.Adsgram.init({blockId:"24981"});
-rewardAd.show().finally(()=>{
-document.getElementById("joinPopup").style.display = "flex";
-});
-}catch(e){
-document.getElementById("joinPopup").style.display = "flex";
-}
-}
+document.getElementById('claimDailyBtn').onclick = () => {
+  gameState.coins += 900;
+  gameState.dailyProgress = [false, false, false, false];
+  gameState.lastDaily = Date.now();
+  document.getElementById('claimDailyBtn').disabled = true;
+  createFloatText('+900 BONUS', '#ffd700');
+  updateUI();
+  showPopup('🎉 Bonus Claimed!', '+900 coins!');
+};
 
-/* WALK WHEEL */
-
-const rewardBlocks = ["24982","24983","24984"];
-let adsShown = 0;
-let claimAvailable = false;
-let wheelRunning = false;
-let rotation = 0;
-
-const canvas = document.getElementById("scratchCanvas");
-const ctx = canvas.getContext("2d");
-const claimBtn = document.getElementById("claimBtn");
-const scratchMsg = document.getElementById("scratchMsg");
-
-const walkSound = new Audio("https://actions.google.com/sounds/v1/foley/footsteps_on_wood.ogg");
-walkSound.loop = true;
-
-function drawWheel(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-ctx.save();
-ctx.translate(canvas.width/2,canvas.height/2);
-ctx.rotate(rotation);
-ctx.beginPath();
-ctx.arc(0,0,80,0,Math.PI*2);
-ctx.fillStyle="#ff0000";
-ctx.fill();
-ctx.fillStyle="#fff";
-ctx.font="18px Arial";
-ctx.textAlign="center";
-ctx.fillText("WALK",0,5);
-ctx.restore();
+// WITHDRAW
+function selectMethod(method) {
+  gameState.selectedMethod = method;
+  document.querySelectorAll('.withdraw-option').forEach(el => {
+    el.classList.remove('selected');
+  });
+  event.target.classList.add('selected');
 }
 
-drawWheel();
+document.getElementById('amount').oninput = () => {
+  let amount = parseInt(document.getElementById('amount').value) || 0;
+  document.getElementById('convertedAmount').innerText = amount * 5;
+};
 
-canvas.addEventListener("click", startWalk);
-canvas.addEventListener("touchstart", startWalk);
+document.getElementById('withdrawBtn').onclick = () => {
+  let amount = parseInt(document.getElementById('amount').value);
+  let wallet = document.getElementById('wallet').value;
+  let method = gameState.selectedMethod;
+  
+  if (!wallet) {
+    showPopup('❌ Error', 'Enter wallet address');
+    return;
+  }
+  
+  if (!amount || amount < 1000) {
+    showPopup('❌ Minimum', 'Minimum 1000 coins (₦5,000)');
+    return;
+  }
+  
+  if (gameState.coins < amount) {
+    showPopup('❌ Insufficient', 'Not enough coins');
+    return;
+  }
+  
+  gameState.coins -= amount;
+  updateUI();
+  
+  document.getElementById('wallet').value = '';
+  document.getElementById('amount').value = '';
+  
+  showPopup('✅ Withdrawal Sent!', `${amount} coins → ₦${amount * 5}\nMethod: ${method.toUpperCase()}`);
+};
 
-function startWalk(){
-if(wheelRunning || claimAvailable) return;
-wheelRunning = true;
-walkSound.play();
-scratchMsg.innerText = "🚶 Walking...";
-rotateWheel();
-runWalkCycle();
+// REFERRAL
+document.getElementById('copyRefBtn').onclick = () => {
+  let link = document.getElementById('refLink');
+  link.select();
+  document.execCommand('copy');
+  showPopup('✅ Copied!', 'Referral link copied');
+};
+
+// UTILS
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  
+  document.querySelector('.section.' + tab).classList.add('active');
+  event.target.classList.add('active');
 }
 
-function rotateWheel(){
-if(!wheelRunning) return;
-rotation += 0.15;
-drawWheel();
-requestAnimationFrame(rotateWheel);
+function showPopup(title, message) {
+  document.getElementById('popupTitle').innerText = title;
+  document.getElementById('popupMessage').innerText = message;
+  document.getElementById('popup').style.display = 'flex';
 }
 
-function runWalkCycle(){
-if(adsShown >= 6){
-wheelRunning = false;
-walkSound.pause();
-claimAvailable = true;
-claimBtn.classList.remove("hidden");
-scratchMsg.innerText = "🎉 Walk completed! Claim reward";
-return;
-}
-setTimeout(()=>{
-showTwoAds();
-},20000);
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
 }
 
-function showTwoAds(){
-showAd(()=>{
-showAd(()=>{
-adsShown += 2;
-runWalkCycle();
-});
-});
+function createFloatText(text, color) {
+  let el = document.createElement('div');
+  el.innerText = text;
+  el.className = 'float-text';
+  el.style.color = color;
+  el.style.position = 'fixed';
+  el.style.left = '50%';
+  el.style.top = '50%';
+  el.style.transform = 'translateX(-50%)';
+  el.style.fontSize = '20px';
+  el.style.fontWeight = 'bold';
+  el.style.pointerEvents = 'none';
+  el.style.zIndex = '999';
+  document.body.appendChild(el);
+  
+  setTimeout(() => el.remove(), 1000);
 }
 
-function showAd(callback){
-try{
-const randomBlock = rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
-const rewardAd = window.Adsgram.init({blockId: randomBlock});
-rewardAd.show().finally(()=>{
-if(callback) callback();
-});
-}catch(e){
-if(callback) callback();
-}
+function saveState() {
+  localStorage.setItem('coins', gameState.coins);
+  localStorage.setItem('totalTaps', gameState.totalTaps);
+  localStorage.setItem('farmLevel', gameState.farmLevel);
+  localStorage.setItem('lastHarvest', gameState.lastHarvest);
+  localStorage.setItem('dailyProgress', JSON.stringify(gameState.dailyProgress));
+  localStorage.setItem('lastDaily', gameState.lastDaily);
+  localStorage.setItem('selectedMethod', gameState.selectedMethod);
 }
 
-/* CLAIM */
-
-const scratchClaimTasks = ["task-24985","task-24986","task-24987","task-24988"];
-
-claimBtn.addEventListener("click", ()=>{
-
-if(!claimAvailable) return;
-
-const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
-const container = document.getElementById("adsgram-container");
-
-container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-container.classList.remove("hidden");
-
-claimBtn.classList.add("hidden");
-
-const task = container.querySelector(".task");
-
-task.addEventListener("reward", ()=>{
-
-points += 1500;
-
-saveState();
+// INIT
 updateUI();
-
-const popup = document.getElementById("claimSuccessMsg");
-
-popup.style.display = "block";
-
-setTimeout(()=>{
-popup.style.display = "none";
-},30000);
-
-resetWalk();
-
-container.classList.add("hidden");
-
-});
-
-});
-
-function resetWalk(){
-adsShown = 0;
-claimAvailable = false;
-wheelRunning = false;
-claimBtn.classList.add("hidden");
-scratchMsg.innerText = "🚶 Tap the wheel to start walking";
-drawWheel();
-}
-
-/* TASK SYSTEM */
-
-let currentTaskIndex = 0;
-
-const taskIds = [
-"task-24985",
-"task-24986",
-"task-24987",
-"task-24988",
-"task-24989"
-];
-
-function loadTask(blockId){
-
-const container = document.getElementById("adsgram-container");
-
-container.innerHTML = `<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
-
-container.classList.remove("hidden");
-
-document.getElementById("taskIntro").classList.add("hidden");
-
-const task = container.querySelector(".task");
-
-task.addEventListener("reward", ()=>{
-
-points += 10;
-energy += 2;
-
-saveState();
-updateUI();
-
-if(currentTaskIndex < taskIds.length-1){
-document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
-}else{
-document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
-}
-
-});
-
-}
-
-document.getElementById("startTasksBtn").addEventListener("click", ()=>{
-currentTaskIndex = 0;
-loadTask(taskIds[currentTaskIndex]);
-});
-
-document.getElementById("nextTaskBtn").addEventListener("click", ()=>{
-currentTaskIndex++;
-document.getElementById("nextTaskBtnContainer").classList.add("hidden");
-loadTask(taskIds[currentTaskIndex]);
-});
-
-document.getElementById("finalTaskBtn").addEventListener("click", ()=>{
-
-try{
-
-const rewardAd = window.Adsgram.init({blockId:"23731"});
-
-rewardAd.show().then(()=>{
-
-energy += 2;
-
-saveState();
-updateUI();
-
-document.getElementById("taskIntro").classList.remove("hidden");
-document.getElementById("adsgram-container").classList.add("hidden");
-document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-
-currentTaskIndex = 0;
-
-});
-
-}catch(e){
-
-document.getElementById("taskIntro").classList.remove("hidden");
-document.getElementById("adsgram-container").classList.add("hidden");
-document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-
-currentTaskIndex = 0;
-
-}
-
-});
-
-/* WELCOME BONUS */
-
-let welcomeTaskCount = 0;
-const welcomeRequired = 6;
-
-document.getElementById("welcomeBonusBtn").addEventListener("click", ()=>{
-
-if(welcomeTaskCount >= welcomeRequired){
-alert("Welcome bonus already claimed.");
-return;
-}
-
-const randomTaskId = taskIds[Math.floor(Math.random()*taskIds.length)];
-
-const container = document.getElementById("adsgram-container");
-
-container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-container.classList.remove("hidden");
-
-const task = container.querySelector(".task");
-
-task.addEventListener("reward", ()=>{
-
-welcomeTaskCount++;
-
-if(welcomeTaskCount < welcomeRequired){
-
-alert("Task completed. Click the button " + (welcomeRequired - welcomeTaskCount) + " more time(s) to receive the 500 bonus.");
-
-}else{
-
-points += 500;
-
-saveState();
-updateUI();
-
-const msg = document.getElementById("welcomeBonusMsg");
-
-msg.style.display = "block";
-
-setTimeout(()=>{
-msg.style.display = "none";
-},30000);
-
-welcomeTaskCount = welcomeRequired;
-
-container.classList.add("hidden");
-
-}
-
-});
-
-});
-
-/* WITHDRAW */
-
-document.getElementById("withdrawBtn").addEventListener("click", ()=>{
-
-const method = document.getElementById("method").value;
-const address = document.getElementById("address").value.trim();
-const amount = parseInt(document.getElementById("amount").value);
-
-if(isNaN(amount) || amount < 100000){
-alert("Minimum withdrawal is 100,000 points (~$100)");
-return;
-}
-
-if(points < amount){
-alert("Not enough points");
-return;
-}
-
-const user = webApp.initDataUnsafe.user || {};
-
-const msg = JSON.stringify({
-type:"withdraw_request",
-user_id:user.id,
-username:user.username || "No username",
-amount,
-method,
-address
-});
-
-Telegram.WebApp.sendData(msg);
-
-points -= amount;
-
-saveState();
-updateUI();
-
-alert("✅ Withdrawal request sent!");
-
-});
-
-/* LOAD */
-
-document.addEventListener("DOMContentLoaded", ()=>{
-updateUI();
-showJoinPopupAfterAds();
-});
-
+setInterval(() => updateUI(), 1000);
+
+// Close popup on outside click
+document.getElementById('popup').onclick = (e) => {
+  if (e.target.id === 'popup') closePopup();
+};
 </script>
 
 </body>
